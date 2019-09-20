@@ -42,10 +42,10 @@ public:
     explicit DevicePluginModbusCommander();
 
     void init() override;
-    Device::DeviceError discoverDevices(const DeviceClassId &deviceClassId, const ParamList &params) override;
-    Device::DeviceSetupStatus setupDevice(Device *device) override;
+    void discoverDevices(DeviceDiscoveryInfo *info) override;
+    void setupDevice(DeviceSetupInfo *info) override;
     void postSetupDevice(Device *device) override;
-    Device::DeviceError executeAction(Device *device, const Action &action) override;
+    void executeAction(DeviceActionInfo *info) override;
     void deviceRemoved(Device *device) override;
 
 private:
