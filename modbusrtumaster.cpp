@@ -25,7 +25,7 @@
 
 #include <QSerialPortInfo>
 
-ModbusRTUMaster::ModbusRTUMaster(QString serialPort, int baudrate, QSerialPort::Parity parity, int dataBits, int stopBits, QObject *parent) :
+ModbusRTUMaster::ModbusRTUMaster(QString serialPort, uint baudrate, QSerialPort::Parity parity, uint dataBits, uint stopBits, QObject *parent) :
     QObject(parent)
 {
     m_modbusRtuSerialMaster = new QModbusRtuSerialMaster(this);
@@ -59,7 +59,7 @@ ModbusRTUMaster::~ModbusRTUMaster()
 
 bool ModbusRTUMaster::connectDevice()
 {
-    qDebug(dcModbusCommander()) << "Setting up TCP connecion";
+    qCDebug(dcModbusCommander()) << "Setting up TCP connecion";
 
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -77,12 +77,12 @@ void ModbusRTUMaster::onReplyFinished()
     QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
     if (!reply)
         return;
-    int modbusAddress = 0;
+    uint modbusAddress = 0;
 
     if (reply->error() == QModbusDevice::NoError) {
         const QModbusDataUnit unit = reply->result();
 
-        for (int i = 0; i < static_cast<int>(unit.valueCount()); i++) {
+        for (uint i = 0; i < static_cast<uint>(unit.valueCount()); i++) {
             //qCDebug(dcUniPi()) << "Start Address:" << unit.startAddress() << "Register Type:" << unit.registerType() << "Value:" << unit.value(i);
             modbusAddress = unit.startAddress() + i;
 
@@ -128,7 +128,7 @@ void ModbusRTUMaster::onReconnectTimer()
     }
 }
 
-bool ModbusRTUMaster::readCoil(int slaveAddress, int registerAddress)
+bool ModbusRTUMaster::readCoil(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -139,7 +139,7 @@ bool ModbusRTUMaster::readCoil(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -149,7 +149,7 @@ bool ModbusRTUMaster::readCoil(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusRTUMaster::writeCoil(int slaveAddress, int registerAddress, bool value)
+bool ModbusRTUMaster::writeCoil(uint slaveAddress, uint registerAddress, bool value)
 {
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -161,7 +161,7 @@ bool ModbusRTUMaster::writeCoil(int slaveAddress, int registerAddress, bool valu
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -171,7 +171,7 @@ bool ModbusRTUMaster::writeCoil(int slaveAddress, int registerAddress, bool valu
     return true;
 }
 
-bool ModbusRTUMaster::writeHoldingRegister(int slaveAddress, int registerAddress, int value)
+bool ModbusRTUMaster::writeHoldingRegister(uint slaveAddress, uint registerAddress, uint value)
 {
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -183,7 +183,7 @@ bool ModbusRTUMaster::writeHoldingRegister(int slaveAddress, int registerAddress
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -193,7 +193,7 @@ bool ModbusRTUMaster::writeHoldingRegister(int slaveAddress, int registerAddress
     return true;
 }
 
-bool ModbusRTUMaster::readDiscreteInput(int slaveAddress, int registerAddress)
+bool ModbusRTUMaster::readDiscreteInput(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -204,7 +204,7 @@ bool ModbusRTUMaster::readDiscreteInput(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -214,7 +214,7 @@ bool ModbusRTUMaster::readDiscreteInput(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusRTUMaster::readInputRegister(int slaveAddress, int registerAddress)
+bool ModbusRTUMaster::readInputRegister(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -225,7 +225,7 @@ bool ModbusRTUMaster::readInputRegister(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -235,7 +235,7 @@ bool ModbusRTUMaster::readInputRegister(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusRTUMaster::readHoldingRegister(int slaveAddress, int registerAddress)
+bool ModbusRTUMaster::readHoldingRegister(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusRtuSerialMaster)
         return false;
@@ -246,7 +246,7 @@ bool ModbusRTUMaster::readHoldingRegister(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }

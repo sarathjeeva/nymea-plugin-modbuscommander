@@ -32,23 +32,23 @@ class ModbusTCPMaster : public QObject
 {
     Q_OBJECT
 public:
-    explicit ModbusTCPMaster(QString ipAddress, int port, QObject *parent = nullptr);
+    explicit ModbusTCPMaster(QString ipAddress, uint port, QObject *parent = nullptr);
     ~ModbusTCPMaster();
 
     bool connectDevice();
 
-    bool readCoil(int slaveAddress, int registerAddress);
-    bool readDiscreteInput(int slaveAddress, int registerAddress);
-    bool readInputRegister(int slaveAddress, int registerAddress);
-    bool readHoldingRegister(int slaveAddress, int registerAddress);
+    bool readCoil(uint slaveAddress, uint registerAddress);
+    bool readDiscreteInput(uint slaveAddress, uint registerAddress);
+    bool readInputRegister(uint slaveAddress, uint registerAddress);
+    bool readHoldingRegister(uint slaveAddress, uint registerAddress);
 
-    bool writeCoil(int slaveAddress, int registerAddress, bool status);
-    bool writeHoldingRegister(int slaveAddress, int registerAddress, int data);
+    bool writeCoil(uint slaveAddress, uint registerAddress, bool status);
+    bool writeHoldingRegister(uint slaveAddress, uint registerAddress, uint data);
 
     QString ipv4Address();
-    int port();
+    uint port();
     bool setIPv4Address(QString ipAddress);
-    bool setPort(int port);
+    bool setPort(uint port);
 
 
 private:
@@ -65,10 +65,10 @@ private slots:
 
 signals:
     void connectionStateChanged(bool status);
-    void receivedCoil(int slaveAddress, int modbusRegister, bool value);
-    void receivedDiscreteInput(int slaveAddress, int modbusRegister, bool value);
-    void receivedHoldingRegister(int slaveAddress, int modbusRegister, int value);
-    void receivedInputRegister(int slaveAddress, int modbusRegister, int value);
+    void receivedCoil(uint slaveAddress, uint modbusRegister, bool value);
+    void receivedDiscreteInput(uint slaveAddress, uint modbusRegister, bool value);
+    void receivedHoldingRegister(uint slaveAddress, uint modbusRegister, uint value);
+    void receivedInputRegister(uint slaveAddress, uint modbusRegister, uint value);
 };
 
 #endif // MODBUSTCPMASTER_H

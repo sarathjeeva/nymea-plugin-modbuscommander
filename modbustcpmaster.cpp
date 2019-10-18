@@ -23,7 +23,7 @@
 #include "modbustcpmaster.h"
 #include "extern-plugininfo.h"
 
-ModbusTCPMaster::ModbusTCPMaster(QString IPv4Address, int port, QObject *parent) :
+ModbusTCPMaster::ModbusTCPMaster(QString IPv4Address, uint port, QObject *parent) :
     QObject(parent)
 {
     m_modbusTcpClient = new QModbusTcpClient(this);
@@ -62,9 +62,9 @@ bool ModbusTCPMaster::connectDevice() {
     return m_modbusTcpClient->connectDevice();
 }
 
-int ModbusTCPMaster::port()
+uint ModbusTCPMaster::port()
 {
-    return m_modbusTcpClient->connectionParameter(QModbusDevice::NetworkPortParameter).toInt();
+    return m_modbusTcpClient->connectionParameter(QModbusDevice::NetworkPortParameter).touint();
 }
 
 bool ModbusTCPMaster::setIPv4Address(QString ipv4Address)
@@ -73,7 +73,7 @@ bool ModbusTCPMaster::setIPv4Address(QString ipv4Address)
     return connectDevice();
 }
 
-bool ModbusTCPMaster::setPort(int port)
+bool ModbusTCPMaster::setPort(uint port)
 {
     m_modbusTcpClient->setConnectionParameter(QModbusDevice::NetworkPortParameter, port);
     return connectDevice();
@@ -84,12 +84,12 @@ void ModbusTCPMaster::onReplyFinished()
     QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
     if (!reply)
         return;
-    int modbusAddress = 0;
+    uint modbusAddress = 0;
 
     if (reply->error() == QModbusDevice::NoError) {
         const QModbusDataUnit unit = reply->result();
 
-        for (int i = 0; i < static_cast<int>(unit.valueCount()); i++) {
+        for (uint i = 0; i < static_cast<uint>(unit.valueCount()); i++) {
             //qCDebug(dcUniPi()) << "Start Address:" << unit.startAddress() << "Register Type:" << unit.registerType() << "Value:" << unit.value(i);
             modbusAddress = unit.startAddress() + i;
 
@@ -140,7 +140,7 @@ QString ModbusTCPMaster::ipv4Address()
     return m_modbusTcpClient->connectionParameter(QModbusDevice::NetworkAddressParameter).toString();
 }
 
-bool ModbusTCPMaster::readCoil(int slaveAddress, int registerAddress)
+bool ModbusTCPMaster::readCoil(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusTcpClient)
         return false;
@@ -151,7 +151,7 @@ bool ModbusTCPMaster::readCoil(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusTCPMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusTCPMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -161,7 +161,7 @@ bool ModbusTCPMaster::readCoil(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusTCPMaster::writeHoldingRegister(int slaveAddress, int registerAddress, int value)
+bool ModbusTCPMaster::writeHoldingRegister(uint slaveAddress, uint registerAddress, uint value)
 {
     if (!m_modbusTcpClient)
         return false;
@@ -173,7 +173,7 @@ bool ModbusTCPMaster::writeHoldingRegister(int slaveAddress, int registerAddress
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusTCPMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusTCPMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -183,7 +183,7 @@ bool ModbusTCPMaster::writeHoldingRegister(int slaveAddress, int registerAddress
     return true;
 }
 
-bool ModbusTCPMaster::readDiscreteInput(int slaveAddress, int registerAddress)
+bool ModbusTCPMaster::readDiscreteInput(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusTcpClient)
         return false;
@@ -194,7 +194,7 @@ bool ModbusTCPMaster::readDiscreteInput(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusTCPMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusTCPMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -204,7 +204,7 @@ bool ModbusTCPMaster::readDiscreteInput(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusTCPMaster::readInputRegister(int slaveAddress, int registerAddress)
+bool ModbusTCPMaster::readInputRegister(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusTcpClient)
         return false;
@@ -225,7 +225,7 @@ bool ModbusTCPMaster::readInputRegister(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusTCPMaster::readHoldingRegister(int slaveAddress, int registerAddress)
+bool ModbusTCPMaster::readHoldingRegister(uint slaveAddress, uint registerAddress)
 {
     if (!m_modbusTcpClient)
         return false;
@@ -236,7 +236,7 @@ bool ModbusTCPMaster::readHoldingRegister(int slaveAddress, int registerAddress)
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusTCPMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusTCPMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }
@@ -246,7 +246,7 @@ bool ModbusTCPMaster::readHoldingRegister(int slaveAddress, int registerAddress)
     return true;
 }
 
-bool ModbusTCPMaster::writeCoil(int slaveAddress, int registerAddress, bool value)
+bool ModbusTCPMaster::writeCoil(uint slaveAddress, uint registerAddress, bool value)
 {
     if (!m_modbusTcpClient)
         return false;
@@ -258,7 +258,7 @@ bool ModbusTCPMaster::writeCoil(int slaveAddress, int registerAddress, bool valu
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, &ModbusTCPMaster::onReplyFinished);
             connect(reply, &QModbusReply::errorOccurred, this, &ModbusTCPMaster::onReplyErrorOccured);
-            QTimer::singleShot(200, reply, SLOT(deleteLater()));
+            QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
         }

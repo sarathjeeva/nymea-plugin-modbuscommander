@@ -32,18 +32,18 @@ class ModbusRTUMaster : public QObject
 {
     Q_OBJECT
 public:
-    explicit ModbusRTUMaster(QString serialPort, int baudrate, QSerialPort::Parity parity, int dataBits, int stopBits, QObject *parent = nullptr);
+    explicit ModbusRTUMaster(QString serialPort, uint baudrate, QSerialPort::Parity parity, uint dataBits, uint stopBits, QObject *parent = nullptr);
     ~ModbusRTUMaster();
 
     bool connectDevice();
 
-    bool readCoil(int slaveAddress, int registerAddress);
-    bool readDiscreteInput(int slaveAddress, int registerAddress);
-    bool readInputRegister(int slaveAddress, int registerAddress);
-    bool readHoldingRegister(int slaveAddress, int registerAddress);
+    bool readCoil(uint slaveAddress, uint registerAddress);
+    bool readDiscreteInput(uint slaveAddress, uint registerAddress);
+    bool readInputRegister(uint slaveAddress, uint registerAddress);
+    bool readHoldingRegister(uint slaveAddress, uint registerAddress);
 
-    bool writeCoil(int slaveAddress, int registerAddress, bool status);
-    bool writeHoldingRegister(int slaveAddress, int registerAddress, int data);
+    bool writeCoil(uint slaveAddress, uint registerAddress, bool status);
+    bool writeHoldingRegister(uint slaveAddress, uint registerAddress, uint data);
 
     QString serialPort();
 
@@ -61,10 +61,10 @@ private slots:
 
 signals:
     void connectionStateChanged(bool status);
-    void receivedCoil(int slaveAddress, int modbusRegister, bool value);
-    void receivedDiscreteInput(int slaveAddress, int modbusRegister, bool value);
-    void receivedHoldingRegister(int slaveAddress, int modbusRegister, int value);
-    void receivedInputRegister(int slaveAddress, int modbusRegister, int value);
+    void receivedCoil(uint slaveAddress, uint modbusRegister, bool value);
+    void receivedDiscreteInput(uint slaveAddress, uint modbusRegister, bool value);
+    void receivedHoldingRegister(uint slaveAddress, uint modbusRegister, uint value);
+    void receivedInputRegister(uint slaveAddress, uint modbusRegister, uint value);
 };
 
 #endif // MODBUSRTUMASTER_H
