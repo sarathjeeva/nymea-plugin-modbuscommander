@@ -111,24 +111,18 @@ Device::DeviceSetupStatus DevicePluginModbusCommander::setupDevice(Device *devic
     }
 
     if (device->deviceClassId() == coilDeviceClassId) {
-
-        device->setParentId(device->paramValue(coilDeviceParentIdParamTypeId).toString());
         return Device::DeviceSetupStatusSuccess;
     }
 
     if (device->deviceClassId() == discreteInputDeviceClassId) {
-
-        device->setParentId(device->paramValue(discreteInputDeviceParentIdParamTypeId).toString());
         return Device::DeviceSetupStatusSuccess;
     }
 
     if (device->deviceClassId() == holdingRegisterDeviceClassId) {
-        device->setParentId(device->paramValue(holdingRegisterDeviceParentIdParamTypeId).toString());
         return Device::DeviceSetupStatusSuccess;
     }
 
     if (device->deviceClassId() == inputRegisterDeviceClassId) {
-        device->setParentId(device->paramValue(inputRegisterDeviceParentIdParamTypeId).toString());
         return Device::DeviceSetupStatusSuccess;
     }
     return Device::DeviceSetupStatusFailure;
@@ -166,16 +160,10 @@ Device::DeviceError DevicePluginModbusCommander::discoverDevices(const DeviceCla
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(discreteInputDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(discreteInputDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
         }
@@ -187,17 +175,10 @@ Device::DeviceError DevicePluginModbusCommander::discoverDevices(const DeviceCla
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(coilDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(coilDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
-                deviceDescriptors.append(descriptor);
             }
         }
         emit devicesDiscovered(deviceClassId, deviceDescriptors);
@@ -208,16 +189,10 @@ Device::DeviceError DevicePluginModbusCommander::discoverDevices(const DeviceCla
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(holdingRegisterDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(holdingRegisterDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
         }
@@ -229,16 +204,10 @@ Device::DeviceError DevicePluginModbusCommander::discoverDevices(const DeviceCla
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(inputRegisterDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                ParamList parameters;
-                parameters.append(Param(inputRegisterDeviceParentIdParamTypeId, ClientDevice->id()));
-                descriptor.setParams(parameters);
                 deviceDescriptors.append(descriptor);
             }
         }
@@ -252,9 +221,9 @@ void DevicePluginModbusCommander::postSetupDevice(Device *device)
 {
     if (!m_refreshTimer) {
         // Refresh timer for TCP read
-        uint refreshTime = configValue(modbusCommanderPluginUpdateuintervalParamTypeId).toUInt();
-        m_refreshTimer = hardwareManager()->pluguintimerManager()->registerTimer(refreshTime);
-        connect(m_refreshTimer, &Pluguintimer::timeout, this, &DevicePluginModbusCommander::onRefreshTimer);
+        uint refreshTime = configValue(modbusCommanderPluginUpdateIntervalParamTypeId).toUInt();
+        m_refreshTimer = hardwareManager()->pluginTimerManager()->registerTimer(refreshTime);
+        connect(m_refreshTimer, &PluginTimer::timeout, this, &DevicePluginModbusCommander::onRefreshTimer);
     }
 
     if ((device->deviceClassId() == coilDeviceClassId) ||
@@ -304,7 +273,7 @@ void DevicePluginModbusCommander::deviceRemoved(Device *device)
 
     if (myDevices().empty()) {
         m_refreshTimer->stop();
-        hardwareManager()->pluguintimerManager()->unregisterTimer(m_refreshTimer);
+        hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
     }
 }
 
@@ -323,7 +292,7 @@ void DevicePluginModbusCommander::onRefreshTimer()
 void DevicePluginModbusCommander::onPluginConfigurationChanged(const ParamTypeId &paramTypeId, const QVariant &value)
 {
     // Check refresh schedule
-    if (paramTypeId == modbusCommanderPluginUpdateuintervalParamTypeId) {;
+    if (paramTypeId == modbusCommanderPluginUpdateIntervalParamTypeId) {;
         if (m_refreshTimer) {
             uint refreshTime = value.toUInt();
             m_refreshTimer->stop();
@@ -347,13 +316,13 @@ void DevicePluginModbusCommander::onConnectionStateChanged(bool status)
     }
 }
 
-void DevicePluginModbusCommander::onReceivedCoil(uint slaveAddress, uint modbusRegister, bool value)
+void DevicePluginModbusCommander::onReceivedCoil(quint32 slaveAddress, quint32 modbusRegister, bool value)
 {
     auto modbus = sender();
 
     if (m_modbusRTUMasters.values().contains(static_cast<ModbusRTUMaster *>(modbus))) {
         Device *parentDevice = m_modbusRTUMasters.key(static_cast<ModbusRTUMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(coilDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(coilDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(coilDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(coilValueStateTypeId, value);
         }
@@ -361,20 +330,20 @@ void DevicePluginModbusCommander::onReceivedCoil(uint slaveAddress, uint modbusR
 
     if (m_modbusTCPMasters.values().contains(static_cast<ModbusTCPMaster *>(modbus))) {
         Device *parentDevice = m_modbusTCPMasters.key(static_cast<ModbusTCPMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(coilDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(coilDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(coilDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(coilValueStateTypeId, value);
         }
     }
 }
 
-void DevicePluginModbusCommander::onReceivedDiscreteInput(uint slaveAddress, uint modbusRegister, bool value)
+void DevicePluginModbusCommander::onReceivedDiscreteInput(quint32 slaveAddress, quint32 modbusRegister, bool value)
 {
     auto modbus = sender();
 
     if (m_modbusRTUMasters.values().contains(static_cast<ModbusRTUMaster *>(modbus))) {
         Device *parentDevice = m_modbusRTUMasters.key(static_cast<ModbusRTUMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(discreteInputDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(discreteInputDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(discreteInputDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(discreteInputValueStateTypeId, value);
         }
@@ -382,20 +351,20 @@ void DevicePluginModbusCommander::onReceivedDiscreteInput(uint slaveAddress, uin
 
     if (m_modbusTCPMasters.values().contains(static_cast<ModbusTCPMaster *>(modbus))) {
         Device *parentDevice = m_modbusTCPMasters.key(static_cast<ModbusTCPMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(discreteInputDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(discreteInputDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(discreteInputDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(discreteInputValueStateTypeId, value);
         }
     }
 }
 
-void DevicePluginModbusCommander::onReceivedHoldingRegister(uint slaveAddress, uint modbusRegister, uint value)
+void DevicePluginModbusCommander::onReceivedHoldingRegister(quint32 slaveAddress, quint32 modbusRegister, int value)
 {
     auto modbus = sender();
 
     if (m_modbusRTUMasters.values().contains(static_cast<ModbusRTUMaster *>(modbus))) {
         Device *parentDevice = m_modbusRTUMasters.key(static_cast<ModbusRTUMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(holdingRegisterDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(holdingRegisterDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(holdingRegisterDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(holdingRegisterValueStateTypeId, value);
         }
@@ -403,20 +372,20 @@ void DevicePluginModbusCommander::onReceivedHoldingRegister(uint slaveAddress, u
 
     if (m_modbusTCPMasters.values().contains(static_cast<ModbusTCPMaster *>(modbus))) {
         Device *parentDevice = m_modbusTCPMasters.key(static_cast<ModbusTCPMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(holdingRegisterDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(holdingRegisterDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(holdingRegisterDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(holdingRegisterValueStateTypeId, value);
         }
     }
 }
 
-void DevicePluginModbusCommander::onReceivedInputRegister(uint slaveAddress, uint modbusRegister, uint value)
+void DevicePluginModbusCommander::onReceivedInputRegister(uint slaveAddress, uint modbusRegister, int value)
 {
     auto modbus = sender();
 
     if (m_modbusRTUMasters.values().contains(static_cast<ModbusRTUMaster *>(modbus))) {
         Device *parentDevice = m_modbusRTUMasters.key(static_cast<ModbusRTUMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(inputRegisterDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(inputRegisterDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(inputRegisterDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(inputRegisterValueStateTypeId, value);
         }
@@ -424,7 +393,7 @@ void DevicePluginModbusCommander::onReceivedInputRegister(uint slaveAddress, uin
 
     if (m_modbusTCPMasters.values().contains(static_cast<ModbusTCPMaster *>(modbus))) {
         Device *parentDevice = m_modbusTCPMasters.key(static_cast<ModbusTCPMaster *>(modbus));
-        foreach(Device *device, myDevices().filterByParam(inputRegisterDeviceParentIdParamTypeId, parentDevice->id())) {
+        foreach(Device *device, myDevices().filterByParentDeviceId(parentDevice->id())) {
             if ((device->paramValue(inputRegisterDeviceSlaveAddressParamTypeId) == slaveAddress) && (device->paramValue(inputRegisterDeviceRegisterAddressParamTypeId) == modbusRegister))
                 device->setStateValue(inputRegisterValueStateTypeId, value);
         }

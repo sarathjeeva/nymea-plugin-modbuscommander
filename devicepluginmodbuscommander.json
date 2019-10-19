@@ -121,24 +121,17 @@
                     "interfaces": ["connectable"],
                     "paramTypes": [
                         {
-                            "id": "ecfae4c3-d8ab-4bea-8bf5-d281740b75f0",
-                            "name": "parentId",
-                            "displayName": "Parent Id",
-                            "type": "QString",
-                            "defaultValue": ""
-                        },
-                        {
                             "id": "d85977a2-4f9c-40f8-9aff-76cea7bd17a3",
                             "name": "slaveAddress",
                             "displayName": "Slave address",
-                            "type": "int",
+                            "type": "uint",
                             "defaultValue": 180
                         },
                         {
                             "id": "9d40c4ce-d251-43bb-a55e-a8780567bbac",
                             "name": "registerAddress",
                             "displayName": "Register address",
-                            "type": "int",
+                            "type": "uint",
                             "defaultValue": 100
                         }
                     ],
@@ -171,24 +164,17 @@
                     "interfaces": ["connectable"],
                     "paramTypes": [
                         {
-                            "id": "3f2b3a57-6103-47df-8365-561b5d1d635a",
-                            "name": "parentId",
-                            "displayName": "Parent Id",
-                            "type": "QString",
-                            "defaultValue": ""
-                        },
-                        {
                             "id": "044d951d-7b58-4099-a9a6-a6dff61746a8",
                             "name": "slaveAddress",
                             "displayName": "Slave address",
-                            "type": "int",
+                            "type": "uint",
                             "defaultValue": 180
                         },
                         {
                             "id": "d37be0cc-6155-4894-b70f-cbc9adfbe48b",
                             "name": "registerAddress",
                             "displayName": "Register address",
-                            "type": "int",
+                            "type": "uint",
                             "defaultValue": 100
                         }
                     ],
@@ -219,24 +205,17 @@
                     "interfaces": ["connectable"],
                     "paramTypes": [
                         {
-                            "id": "7e842659-34de-4d4f-961b-c7887d472643",
-                            "name": "parentId",
-                            "displayName": "Parent Id",
-                            "type": "QString",
-                            "defaultValue": ""
-                        },
-                        {
                             "id": "f66956ac-07cb-45ab-90e0-61c2a950b85a",
                             "name": "slaveAddress",
                             "displayName": "Slave address",
-                            "type": "int",
+                            "type": "uint",
                             "defaultValue": 180
                         },
                         {
                             "id": "264e381c-d259-4e11-b4b3-332b518ebba3",
                             "name": "registerAddress",
                             "displayName": "Register address",
-                            "type": "int",
+                            "type": "uint",
                             "defaultValue": 100
                         }
                     ],
@@ -266,13 +245,6 @@
                     "createMethods": ["discovery"],
                     "interfaces": ["connectable"],
                     "paramTypes": [
-                        {
-                            "id": "7cc245e8-0143-439c-abd5-434ecfbbabee",
-                            "name": "parentId",
-                            "displayName": "Parent Id",
-                            "type": "QString",
-                            "defaultValue": ""
-                        },
                         {
                             "id": "35879cf9-631c-4fe0-95c0-a4bb2e9039e6",
                             "name": "slaveAddress",

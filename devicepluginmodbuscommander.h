@@ -63,10 +63,10 @@ private slots:
     void onPluginConfigurationChanged(const ParamTypeId &paramTypeId, const QVariant &value);
 
     void onConnectionStateChanged(bool status);
-    void onReceivedCoil(int slaveAddress, int modbusRegister, bool value);
-    void onReceivedDiscreteInput(int slaveAddress, int modbusRegister, bool value);
-    void onReceivedHoldingRegister(int slaveAddress, int modbusRegister, int value);
-    void onReceivedInputRegister(int slaveAddress, int modbusRegister, int value);
+    void onReceivedCoil(quint32 slaveAddress, quint32 modbusRegister, bool value);
+    void onReceivedDiscreteInput(quint32 slaveAddress, quint32 modbusRegister, bool value);
+    void onReceivedHoldingRegister(quint32 slaveAddress, quint32 modbusRegister, int value);
+    void onReceivedInputRegister(quint32 slaveAddress, quint32 modbusRegister, int value);
 };
 
 #endif // DEVICEPLUGINMODBUSCOMMANDER_H

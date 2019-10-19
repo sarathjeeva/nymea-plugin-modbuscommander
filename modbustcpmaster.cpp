@@ -64,7 +64,7 @@ bool ModbusTCPMaster::connectDevice() {
 
 uint ModbusTCPMaster::port()
 {
-    return m_modbusTcpClient->connectionParameter(QModbusDevice::NetworkPortParameter).touint();
+    return m_modbusTcpClient->connectionParameter(QModbusDevice::NetworkPortParameter).toUInt();
 }
 
 bool ModbusTCPMaster::setIPv4Address(QString ipv4Address)
