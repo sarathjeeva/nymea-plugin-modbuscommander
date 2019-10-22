@@ -55,11 +55,18 @@ private:
     QHash<Device *, ModbusRTUMaster *> m_modbusRTUMasters;
     QHash<Device *, ModbusTCPMaster *> m_modbusTCPMasters;
     QHash<QUuid, DeviceActionInfo *> m_asyncActions;
+    QHash<QUuid, Device *> m_readRequests;
+
     QHash<ModbusRTUMaster *, DeviceSetupInfo *> m_asyncRTUSetup;
     QHash<ModbusTCPMaster *, DeviceSetupInfo *> m_asyncTCPSetup;
 
     void readRegister(Device *device);
     void writeRegister(Device *device, DeviceActionInfo *info);
+
+    QHash<DeviceClassId, ParamTypeId> m_slaveAddressParamTypeId;
+    QHash<DeviceClassId, ParamTypeId> m_registerAddressParamTypeId;
+    QHash<DeviceClassId, StateTypeId> m_connectedStateTypeId;
+    QHash<DeviceClassId, StateTypeId> m_valueStateTypeId;
 
 private slots:
     void onRefreshTimer();
@@ -67,7 +74,8 @@ private slots:
     void onPluginConfigurationChanged(const ParamTypeId &paramTypeId, const QVariant &value);
 
     void onConnectionStateChanged(bool status);
-    void onRequestExecuted(QUuid, bool success);
+    void onRequestExecuted(QUuid requestId, bool success);
+    void onRequestError(QUuid requestId, const QString &error);
     void onReceivedCoil(quint32 slaveAddress, quint32 modbusRegister, bool value);
     void onReceivedDiscreteInput(quint32 slaveAddress, quint32 modbusRegister, bool value);
     void onReceivedHoldingRegister(quint32 slaveAddress, quint32 modbusRegister, int value);
