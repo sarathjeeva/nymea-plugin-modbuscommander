@@ -54,6 +54,7 @@ DevicePluginModbusCommander::DevicePluginModbusCommander()
 void DevicePluginModbusCommander::init()
 {
     connect(this, &DevicePluginModbusCommander::configValueChanged, this, &DevicePluginModbusCommander::onPluginConfigurationChanged);
+    QLoggingCategory::setFilterRules(QStringLiteral("qt.modbus* = false"));
 }
 
 
@@ -74,18 +75,17 @@ void DevicePluginModbusCommander::setupDevice(DeviceSetupInfo *info)
 
         ModbusTCPMaster *modbusTCPMaster = new ModbusTCPMaster(ipAddress, port, this);
         connect(modbusTCPMaster, &ModbusTCPMaster::connectionStateChanged, this, &DevicePluginModbusCommander::onConnectionStateChanged);
-
+        connect(modbusTCPMaster, &ModbusTCPMaster::requestExecuted, this, &DevicePluginModbusCommander::onRequestExecuted);
         connect(modbusTCPMaster, &ModbusTCPMaster::receivedCoil, this, &DevicePluginModbusCommander::onReceivedCoil);
         connect(modbusTCPMaster, &ModbusTCPMaster::receivedDiscreteInput, this, &DevicePluginModbusCommander::onReceivedDiscreteInput);
         connect(modbusTCPMaster, &ModbusTCPMaster::receivedHoldingRegister, this, &DevicePluginModbusCommander::onReceivedHoldingRegister);
         connect(modbusTCPMaster, &ModbusTCPMaster::receivedInputRegister, this, &DevicePluginModbusCommander::onReceivedInputRegister);
-
+        modbusTCPMaster->connectDevice();
         m_modbusTCPMasters.insert(device, modbusTCPMaster);
-        return info->finish(Device::DeviceErrorNoError);
-    }
+        m_asyncTCPSetup.insert(modbusTCPMaster, info);
+        return;
 
-
-    if (device->deviceClassId() == modbusRTUClientDeviceClassId) {
+    } else if (device->deviceClassId() == modbusRTUClientDeviceClassId) {
 
         QString serialPort = device->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString();
         uint baudrate = device->paramValue(modbusRTUClientDeviceBaudRateParamTypeId).toUInt();
@@ -102,33 +102,31 @@ void DevicePluginModbusCommander::setupDevice(DeviceSetupInfo *info)
 
         ModbusRTUMaster *modbusRTUMaster = new ModbusRTUMaster(serialPort, baudrate, parity, dataBits, stopBits, this);
         connect(modbusRTUMaster, &ModbusRTUMaster::connectionStateChanged, this, &DevicePluginModbusCommander::onConnectionStateChanged);
-
         connect(modbusRTUMaster, &ModbusRTUMaster::receivedCoil, this, &DevicePluginModbusCommander::onReceivedCoil);
         connect(modbusRTUMaster, &ModbusRTUMaster::receivedDiscreteInput, this, &DevicePluginModbusCommander::onReceivedDiscreteInput);
         connect(modbusRTUMaster, &ModbusRTUMaster::receivedHoldingRegister, this, &DevicePluginModbusCommander::onReceivedHoldingRegister);
         connect(modbusRTUMaster, &ModbusRTUMaster::receivedInputRegister, this, &DevicePluginModbusCommander::onReceivedInputRegister);
-
+        modbusRTUMaster->connectDevice();
         m_modbusRTUMasters.insert(device, modbusRTUMaster);
-        return info->finish(Device::DeviceErrorNoError);
-    }
+        m_asyncRTUSetup.insert(modbusRTUMaster, info);
+        return;
 
-    if (device->deviceClassId() == coilDeviceClassId) {
-        return info->finish(Device::DeviceErrorNoError);
-    }
-
-    if (device->deviceClassId() == discreteInputDeviceClassId) {
-        return info->finish(Device::DeviceErrorNoError);
-    }
-
-    if (device->deviceClassId() == holdingRegisterDeviceClassId) {
-        return info->finish(Device::DeviceErrorNoError);
-    }
-
-    if (device->deviceClassId() == inputRegisterDeviceClassId) {
-        return info->finish(Device::DeviceErrorNoError);
+    } else if (device->deviceClassId() == coilDeviceClassId) {
+        info->finish(Device::DeviceErrorNoError);
+        return;
+    } else if (device->deviceClassId() == discreteInputDeviceClassId) {
+        info->finish(Device::DeviceErrorNoError);
+        return;
+    } else if (device->deviceClassId() == holdingRegisterDeviceClassId) {
+        info->finish(Device::DeviceErrorNoError);
+        return;
+    } else if (device->deviceClassId() == inputRegisterDeviceClassId) {
+        info->finish(Device::DeviceErrorNoError);
+        return;
     }
 
     qCWarning(dcModbusCommander()) << "Unhandled device class in setupDevice!";
+    info->finish(Device::DeviceErrorSetupFailed);
 }
 
 void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
@@ -222,7 +220,7 @@ void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
         info->finish(Device::DeviceErrorNoError);
         return;
     }
-
+    info->finish(Device::DeviceErrorDeviceClassNotFound);
     qCWarning(dcModbusCommander()) << "Unhandled device class in discovery!";
 }
 
@@ -247,27 +245,22 @@ void DevicePluginModbusCommander::postSetupDevice(Device *device)
 void DevicePluginModbusCommander::executeAction(DeviceActionInfo *info)
 {
     Device *device = info->device();
-    Action action = info->action();
 
     if (device->deviceClassId() == coilDeviceClassId) {
 
-        if (action.actionTypeId() == coilValueActionTypeId) {
-            writeRegister(device, action);
-
-            return info->finish(Device::DeviceErrorNoError);
+        if (info->action().actionTypeId() == coilValueActionTypeId) {
+            writeRegister(device, info);
+            return;
         }
+    } else if (device->deviceClassId() == holdingRegisterDeviceClassId) {
 
-    }
-
-    if (device->deviceClassId() == holdingRegisterDeviceClassId) {
-
-        if (action.actionTypeId() == holdingRegisterValueActionTypeId) {
-            writeRegister(device, action);
-            return info->finish(Device::DeviceErrorNoError);
+        if (info->action().actionTypeId() == holdingRegisterValueActionTypeId) {
+            writeRegister(device, info);
+            return;
         }
     }
-
     qCWarning(dcModbusCommander()) << "Unhandled deviceclass/actiontype in executeAction!";
+    info->finish(Device::DeviceErrorDeviceClassNotFound);
 }
 
 
@@ -284,8 +277,8 @@ void DevicePluginModbusCommander::deviceRemoved(Device *device)
     }
 
     if (myDevices().empty()) {
-        m_refreshTimer->stop();
         hardwareManager()->pluginTimerManager()->unregisterTimer(m_refreshTimer);
+        m_refreshTimer = nullptr;
     }
 }
 
@@ -317,14 +310,32 @@ void DevicePluginModbusCommander::onConnectionStateChanged(bool status)
 {
     auto modbus = sender();
 
+    if (m_asyncRTUSetup.contains(static_cast<ModbusRTUMaster *>(modbus))) {
+        DeviceSetupInfo *info = m_asyncRTUSetup.take(static_cast<ModbusRTUMaster *>(modbus));
+        info->finish(Device::DeviceErrorNoError);
+
+    } else if (m_asyncTCPSetup.contains(static_cast<ModbusTCPMaster *>(modbus))) {
+        DeviceSetupInfo *info = m_asyncTCPSetup.take(static_cast<ModbusTCPMaster *>(modbus));
+        info->finish(Device::DeviceErrorNoError);
+    }
+
     if (m_modbusRTUMasters.values().contains(static_cast<ModbusRTUMaster *>(modbus))) {
         Device *device = m_modbusRTUMasters.key(static_cast<ModbusRTUMaster *>(modbus));
         device->setStateValue(modbusRTUClientConnectedStateTypeId, status);
-    }
-
-    if (m_modbusTCPMasters.values().contains(static_cast<ModbusTCPMaster *>(modbus))) {
+    } else if (m_modbusTCPMasters.values().contains(static_cast<ModbusTCPMaster *>(modbus))) {
         Device *device = m_modbusTCPMasters.key(static_cast<ModbusTCPMaster *>(modbus));
         device->setStateValue(modbusTCPClientConnectedStateTypeId, status);
+    }
+}
+
+void DevicePluginModbusCommander::onRequestExecuted(QUuid requestId, bool success)
+{
+    if (m_asyncActions.contains(requestId)){
+        DeviceActionInfo *info = m_asyncActions.take(requestId);
+        if (success)
+            info->finish(Device::DeviceErrorNoError);
+        else
+            info->finish(Device::DeviceErrorHardwareNotAvailable);
     }
 }
 
@@ -473,23 +484,25 @@ void DevicePluginModbusCommander::readRegister(Device *device)
     }
 }
 
-void DevicePluginModbusCommander::writeRegister(Device *device, Action action)
+void DevicePluginModbusCommander::writeRegister(Device *device, DeviceActionInfo *info)
 {
     Device *parent = myDevices().findById(device->parentId());
     uint registerAddress;
     uint slaveAddress;
+    QUuid requestId;
+    Action action = info->action();
 
     if (parent->deviceClassId() == modbusTCPClientDeviceClassId) {
         ModbusTCPMaster *modbus = m_modbusTCPMasters.value(parent);
         if (device->deviceClassId() == coilDeviceClassId) {
             registerAddress = device->paramValue(coilDeviceRegisterAddressParamTypeId).toUInt();
             slaveAddress = device->paramValue(coilDeviceSlaveAddressParamTypeId).toUInt();
-            modbus->writeCoil(slaveAddress, registerAddress, action.param(coilValueActionValueParamTypeId).value().toBool());
+            requestId = modbus->writeCoil(slaveAddress, registerAddress, action.param(coilValueActionValueParamTypeId).value().toBool());
         }
         if (device->deviceClassId() == holdingRegisterDeviceClassId) {
             registerAddress = device->paramValue(holdingRegisterDeviceRegisterAddressParamTypeId).toUInt();
             slaveAddress = device->paramValue(holdingRegisterDeviceSlaveAddressParamTypeId).toUInt();
-            modbus->writeHoldingRegister(slaveAddress, registerAddress, action.param(holdingRegisterValueActionValueParamTypeId).value().toUInt());
+            requestId = modbus->writeHoldingRegister(slaveAddress, registerAddress, action.param(holdingRegisterValueActionValueParamTypeId).value().toUInt());
         }
     }
 
@@ -498,12 +511,18 @@ void DevicePluginModbusCommander::writeRegister(Device *device, Action action)
         if (device->deviceClassId() == coilDeviceClassId) {
             registerAddress = device->paramValue(coilDeviceRegisterAddressParamTypeId).toUInt();
             slaveAddress = device->paramValue(coilDeviceSlaveAddressParamTypeId).toUInt();
-            modbus->writeCoil(slaveAddress, registerAddress, action.param(coilValueActionValueParamTypeId).value().toBool());
+            requestId = modbus->writeCoil(slaveAddress, registerAddress, action.param(coilValueActionValueParamTypeId).value().toBool());
         }
         if (device->deviceClassId() == holdingRegisterDeviceClassId) {
             registerAddress = device->paramValue(holdingRegisterDeviceRegisterAddressParamTypeId).toUInt();
             slaveAddress = device->paramValue(holdingRegisterDeviceSlaveAddressParamTypeId).toUInt();
-            modbus->writeHoldingRegister(slaveAddress, registerAddress, action.param(holdingRegisterValueActionValueParamTypeId).value().toUInt());
+            requestId = modbus->writeHoldingRegister(slaveAddress, registerAddress, action.param(holdingRegisterValueActionValueParamTypeId).value().toUInt());
         }
+    }
+    if (requestId.isNull()){
+        info->finish(Device::DeviceErrorHardwareNotAvailable);
+    } else {
+        m_asyncActions.insert(requestId, info);
+        connect(info, &DeviceActionInfo::aborted, [requestId, this] {m_asyncActions.remove(requestId);});
     }
 }

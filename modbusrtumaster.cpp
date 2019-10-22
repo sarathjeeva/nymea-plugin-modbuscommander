@@ -72,55 +72,6 @@ QString ModbusRTUMaster::serialPort()
     return m_modbusRtuSerialMaster->connectionParameter(QModbusDevice::SerialPortNameParameter).toString();
 }
 
-void ModbusRTUMaster::onReplyFinished()
-{
-    QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
-    if (!reply)
-        return;
-    uint modbusAddress = 0;
-
-    if (reply->error() == QModbusDevice::NoError) {
-        const QModbusDataUnit unit = reply->result();
-
-        for (uint i = 0; i < static_cast<uint>(unit.valueCount()); i++) {
-            //qCDebug(dcUniPi()) << "Start Address:" << unit.startAddress() << "Register Type:" << unit.registerType() << "Value:" << unit.value(i);
-            modbusAddress = unit.startAddress() + i;
-
-            switch (unit.registerType()) {
-            case QModbusDataUnit::RegisterType::Coils:
-                emit receivedCoil(reply->serverAddress(), modbusAddress, unit.value(i));
-                break;
-            case QModbusDataUnit::RegisterType::DiscreteInputs:
-                emit receivedDiscreteInput(reply->serverAddress(), modbusAddress, unit.value(i));
-                break;
-            case QModbusDataUnit::RegisterType::InputRegisters:
-                emit receivedInputRegister(reply->serverAddress(), modbusAddress, unit.value(i));
-                break;
-            case QModbusDataUnit::RegisterType::HoldingRegisters:
-                emit receivedHoldingRegister(reply->serverAddress(), modbusAddress, unit.value(i));
-                break;
-            case QModbusDataUnit::RegisterType::Invalid:
-                break;
-            }
-        }
-
-    } else if (reply->error() == QModbusDevice::ProtocolError) {
-        qCWarning(dcModbusCommander()) << "Read response error:" << reply->errorString() << reply->rawResult().exceptionCode();
-    } else {
-        qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
-    }
-    reply->deleteLater();
-}
-
-void ModbusRTUMaster::onReplyErrorOccured(QModbusDevice::Error error)
-{
-    qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
-    QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
-    if (!reply)
-        return;
-    reply->finished(); //to make sure it will be deleted
-}
-
 void ModbusRTUMaster::onReconnectTimer()
 {
     if(!m_modbusRtuSerialMaster->connectDevice()) {
@@ -128,132 +79,276 @@ void ModbusRTUMaster::onReconnectTimer()
     }
 }
 
-bool ModbusRTUMaster::readCoil(uint slaveAddress, uint registerAddress)
+QUuid ModbusRTUMaster::readCoil(uint slaveAddress, uint registerAddress)
 {
-    if (!m_modbusRtuSerialMaster)
-        return false;
+    if (!m_modbusRtuSerialMaster) {
+        return "";
+    }
+    QUuid requestId = QUuid::createUuid();
 
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::Coils, registerAddress, 1);
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
-            connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
+            connect(reply, &QModbusReply::finished, [requestId, this] {
+
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                if (reply->error() == QModbusDevice::NoError) {
+                    requestExecuted(requestId, true);
+                    const QModbusDataUnit unit = reply->result();
+                    uint modbusAddress = unit.startAddress();
+                    emit receivedCoil(reply->serverAddress(), modbusAddress, unit.value(0));
+
+                } else {
+                    requestExecuted(requestId, false);
+                    qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
+                }
+                reply->deleteLater();
+            });
+            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+
+                qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                emit requestError(requestId, reply->errorString());
+                reply->finished(); // To make sure it will be deleted
+            });
             QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
+            return "";
         }
     } else {
         qCWarning(dcModbusCommander()) << "Read error: " << m_modbusRtuSerialMaster->errorString();
+        return "";
     }
-    return true;
+    return requestId;
 }
 
-bool ModbusRTUMaster::writeCoil(uint slaveAddress, uint registerAddress, bool value)
+QUuid ModbusRTUMaster::writeCoil(uint slaveAddress, uint registerAddress, bool value)
 {
-    if (!m_modbusRtuSerialMaster)
-        return false;
+    if (!m_modbusRtuSerialMaster) {
+        return "";
+    }
+    QUuid requestId = QUuid::createUuid();
 
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::Coils, registerAddress, 1);
     request.setValue(0, static_cast<uint16_t>(value));
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendWriteRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
-            connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
+            connect(reply, &QModbusReply::finished, [requestId, this] {
+
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                if (reply->error() == QModbusDevice::NoError) {
+                    requestExecuted(requestId, true);
+                    const QModbusDataUnit unit = reply->result();
+                    uint modbusAddress = unit.startAddress();
+                    emit receivedCoil(reply->serverAddress(), modbusAddress, unit.value(0));
+
+                } else {
+                    requestExecuted(requestId, false);
+                    qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
+                }
+                reply->deleteLater();
+            });
+            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+
+                qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                emit requestError(requestId, reply->errorString());
+                reply->finished(); // To make sure it will be deleted
+            });
             QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
+            return "";
         }
     } else {
         qCWarning(dcModbusCommander()) << "Read error: " << m_modbusRtuSerialMaster->errorString();
+        return "";
     }
-    return true;
+    return requestId;
 }
 
-bool ModbusRTUMaster::writeHoldingRegister(uint slaveAddress, uint registerAddress, uint value)
+QUuid ModbusRTUMaster::writeHoldingRegister(uint slaveAddress, uint registerAddress, uint value)
 {
-    if (!m_modbusRtuSerialMaster)
-        return false;
+    if (!m_modbusRtuSerialMaster) {
+        return "";
+    }
+    QUuid requestId = QUuid::createUuid();
 
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, registerAddress, 1);
     request.setValue(0, static_cast<uint16_t>(value));
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendWriteRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
-            connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
+            connect(reply, &QModbusReply::finished, [requestId, this] {
+
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                if (reply->error() == QModbusDevice::NoError) {
+                    requestExecuted(requestId, true);
+                    const QModbusDataUnit unit = reply->result();
+                    uint modbusAddress = unit.startAddress();
+                    emit receivedHoldingRegister(reply->serverAddress(), modbusAddress, unit.value(0));
+
+                } else {
+                    requestExecuted(requestId, false);
+                    qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
+                }
+                reply->deleteLater();
+            });
+            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+
+                qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                emit requestError(requestId, reply->errorString());
+                reply->finished(); // To make sure it will be deleted
+            });
             QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
+            return "";
         }
     } else {
         qCWarning(dcModbusCommander()) << "Read error: " << m_modbusRtuSerialMaster->errorString();
+        return "";
     }
-    return true;
+    return requestId;
 }
 
-bool ModbusRTUMaster::readDiscreteInput(uint slaveAddress, uint registerAddress)
+QUuid ModbusRTUMaster::readDiscreteInput(uint slaveAddress, uint registerAddress)
 {
-    if (!m_modbusRtuSerialMaster)
-        return false;
+    if (!m_modbusRtuSerialMaster) {
+        return "";
+    }
+    QUuid requestId = QUuid::createUuid();
 
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::DiscreteInputs, registerAddress, 1);
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
-            connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
+            connect(reply, &QModbusReply::finished, [requestId, this] {
+
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                if (reply->error() == QModbusDevice::NoError) {
+                    requestExecuted(requestId, true);
+                    const QModbusDataUnit unit = reply->result();
+                    uint modbusAddress = unit.startAddress();
+                    emit receivedDiscreteInput(reply->serverAddress(), modbusAddress, unit.value(0));
+
+                } else {
+                    requestExecuted(requestId, false);
+                    qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
+                }
+                reply->deleteLater();
+            });
+            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+
+                qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                emit requestError(requestId, reply->errorString());
+                reply->finished(); // To make sure it will be deleted
+            });
             QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
+            return "";
         }
     } else {
         qCWarning(dcModbusCommander()) << "Read error: " << m_modbusRtuSerialMaster->errorString();
+        return "";
     }
-    return true;
+    return requestId;
 }
 
-bool ModbusRTUMaster::readInputRegister(uint slaveAddress, uint registerAddress)
+QUuid ModbusRTUMaster::readInputRegister(uint slaveAddress, uint registerAddress)
 {
-    if (!m_modbusRtuSerialMaster)
-        return false;
+    if (!m_modbusRtuSerialMaster) {
+        return "";
+    }
+    QUuid requestId = QUuid::createUuid();
 
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::InputRegisters, registerAddress, 1);
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
-            connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
+            connect(reply, &QModbusReply::finished, [requestId, this] {
+
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                if (reply->error() == QModbusDevice::NoError) {
+                    requestExecuted(requestId, true);
+                    const QModbusDataUnit unit = reply->result();
+                    uint modbusAddress = unit.startAddress();
+                    emit receivedInputRegister(reply->serverAddress(), modbusAddress, unit.value(0));
+
+                } else {
+                    requestExecuted(requestId, false);
+                    qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
+                }
+                reply->deleteLater();
+            });
+            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+
+                qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                emit requestError(requestId, reply->errorString());
+                reply->finished(); // To make sure it will be deleted
+            });
             QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
+            return "";
         }
     } else {
         qCWarning(dcModbusCommander()) << "Read error: " << m_modbusRtuSerialMaster->errorString();
+        return "";
     }
-    return true;
+    return requestId;
 }
 
-bool ModbusRTUMaster::readHoldingRegister(uint slaveAddress, uint registerAddress)
+QUuid ModbusRTUMaster::readHoldingRegister(uint slaveAddress, uint registerAddress)
 {
-    if (!m_modbusRtuSerialMaster)
-        return false;
+    if (!m_modbusRtuSerialMaster) {
+        return "";
+    }
+    QUuid requestId = QUuid::createUuid();
 
     QModbusDataUnit request = QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters, registerAddress, 1);
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusRTUMaster::onReplyFinished);
-            connect(reply, &QModbusReply::errorOccurred, this, &ModbusRTUMaster::onReplyErrorOccured);
+            connect(reply, &QModbusReply::finished, [requestId, this] {
+
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                if (reply->error() == QModbusDevice::NoError) {
+                    requestExecuted(requestId, true);
+                    const QModbusDataUnit unit = reply->result();
+                    uint modbusAddress = unit.startAddress();
+                    emit receivedHoldingRegister(reply->serverAddress(), modbusAddress, unit.value(0));
+
+                } else {
+                    requestExecuted(requestId, false);
+                    qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
+                }
+                reply->deleteLater();
+            });
+            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+
+                qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
+                QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
+                emit requestError(requestId, reply->errorString());
+                reply->finished(); // To make sure it will be deleted
+            });
             QTimer::singleShot(200, reply, &QModbusReply::deleteLater);
         } else {
             delete reply; // broadcast replies return immediately
+            return "";
         }
     } else {
         qCWarning(dcModbusCommander()) << "Read error: " << m_modbusRtuSerialMaster->errorString();
+        return "";
     }
-    return true;
+    return requestId;
 }
 
 
