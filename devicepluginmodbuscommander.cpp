@@ -158,13 +158,15 @@ void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
     }
 
     if (deviceClassId == discreteInputDeviceClassId) {
-        Q_FOREACH(Device *ClientDevice, myDevices()){
-            if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+        Q_FOREACH(Device *clientDevice, myDevices()){
+            if (clientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
+                DeviceDescriptor descriptor(deviceClassId, "Discrete input", clientDevice->name() + " " + clientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + " Port: " + clientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+                descriptor.setParentDeviceId(clientDevice->id());
                 info->addDeviceDescriptor(descriptor);
             }
-            if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+            if (clientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
+                DeviceDescriptor descriptor(deviceClassId, "Discrete input", clientDevice->name() + " " + clientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+                descriptor.setParentDeviceId(clientDevice->id());
                 info->addDeviceDescriptor(descriptor);
             }
         }
@@ -173,13 +175,15 @@ void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
     }
 
     if (deviceClassId == coilDeviceClassId) {
-        Q_FOREACH(Device *ClientDevice, myDevices()){
-            if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+        Q_FOREACH(Device *clientDevice, myDevices()){
+            if (clientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
+                DeviceDescriptor descriptor(deviceClassId, "Coil", clientDevice->name() + " " + clientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + clientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+                descriptor.setParentDeviceId(clientDevice->id());
                 info->addDeviceDescriptor(descriptor);
             }
-            if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+            if (clientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
+                DeviceDescriptor descriptor(deviceClassId, "Coil", clientDevice->name() + " " + clientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+                descriptor.setParentDeviceId(clientDevice->id());
                 info->addDeviceDescriptor(descriptor);
             }
         }
@@ -188,13 +192,15 @@ void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
     }
 
     if (deviceClassId == holdingRegisterDeviceClassId) {
-        Q_FOREACH(Device *ClientDevice, myDevices()){
-            if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+        Q_FOREACH(Device *clientDevice, myDevices()){
+            if (clientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
+                DeviceDescriptor descriptor(deviceClassId, "Holding register", clientDevice->name() + " " + clientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + " Port: " + clientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+                descriptor.setParentDeviceId(clientDevice->id());
                 info->addDeviceDescriptor(descriptor);
             }
-            if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+            if (clientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
+                DeviceDescriptor descriptor(deviceClassId, "Holding register", clientDevice->name() + " " + clientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+                descriptor.setParentDeviceId(clientDevice->id());
                 info->addDeviceDescriptor(descriptor);
             }
         }
@@ -205,11 +211,11 @@ void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
     if (deviceClassId == inputRegisterDeviceClassId) {
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
+                DeviceDescriptor descriptor(deviceClassId, "Input register", ClientDevice->name() + " " + ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + " Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
                 info->addDeviceDescriptor(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
-                DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+                DeviceDescriptor descriptor(deviceClassId, "Input register", ClientDevice->name() + " " + ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
                 info->addDeviceDescriptor(descriptor);
             }
         }
