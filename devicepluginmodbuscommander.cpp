@@ -520,7 +520,7 @@ void DevicePluginModbusCommander::readRegister(Device *device)
     }
     if (!requestId.isNull()) {
         m_readRequests.insert(requestId, device);
-        QTimer::singleShot(5000, [requestId, this] {m_readRequests.remove(requestId);});
+        QTimer::singleShot(5000, this, [requestId, this] {m_readRequests.remove(requestId);});
     } else {
         // Request returned without an id
         device->setStateValue(m_connectedStateTypeId.value(device->deviceClassId()), false);
@@ -567,6 +567,6 @@ void DevicePluginModbusCommander::writeRegister(Device *device, DeviceActionInfo
         info->finish(Device::DeviceErrorHardwareNotAvailable);
     } else {
         m_asyncActions.insert(requestId, info);
-        connect(info, &DeviceActionInfo::aborted, [requestId, this] {m_asyncActions.remove(requestId);});
+        connect(info, &DeviceActionInfo::aborted, this, [requestId, this] {m_asyncActions.remove(requestId);});
     }
 }

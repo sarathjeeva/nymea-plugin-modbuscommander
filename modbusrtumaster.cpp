@@ -90,7 +90,7 @@ QUuid ModbusRTUMaster::readCoil(uint slaveAddress, uint registerAddress)
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
 
                 if (reply->error() == QModbusDevice::NoError) {
@@ -105,7 +105,7 @@ QUuid ModbusRTUMaster::readCoil(uint slaveAddress, uint registerAddress)
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
 
@@ -136,8 +136,7 @@ QUuid ModbusRTUMaster::writeCoil(uint slaveAddress, uint registerAddress, bool v
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendWriteRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
-
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -151,7 +150,7 @@ QUuid ModbusRTUMaster::writeCoil(uint slaveAddress, uint registerAddress, bool v
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
                 emit requestError(requestId, reply->errorString());
@@ -181,7 +180,7 @@ QUuid ModbusRTUMaster::writeHoldingRegister(uint slaveAddress, uint registerAddr
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendWriteRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -195,7 +194,7 @@ QUuid ModbusRTUMaster::writeHoldingRegister(uint slaveAddress, uint registerAddr
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
                 emit requestError(requestId, reply->errorString());
@@ -224,8 +223,7 @@ QUuid ModbusRTUMaster::readDiscreteInput(uint slaveAddress, uint registerAddress
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
-
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -239,7 +237,7 @@ QUuid ModbusRTUMaster::readDiscreteInput(uint slaveAddress, uint registerAddress
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
 
@@ -269,7 +267,7 @@ QUuid ModbusRTUMaster::readInputRegister(uint slaveAddress, uint registerAddress
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
 
                 if (reply->error() == QModbusDevice::NoError) {
@@ -284,7 +282,7 @@ QUuid ModbusRTUMaster::readInputRegister(uint slaveAddress, uint registerAddress
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
 
@@ -314,8 +312,7 @@ QUuid ModbusRTUMaster::readHoldingRegister(uint slaveAddress, uint registerAddre
 
     if (QModbusReply *reply = m_modbusRtuSerialMaster->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
-
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -329,7 +326,7 @@ QUuid ModbusRTUMaster::readHoldingRegister(uint slaveAddress, uint registerAddre
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
 

@@ -102,7 +102,7 @@ QUuid ModbusTCPMaster::readCoil(uint slaveAddress, uint registerAddress)
 
     if (QModbusReply *reply = m_modbusTcpClient->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
                 reply->deleteLater();
 
                 if (reply->error() == QModbusDevice::NoError) {
@@ -116,7 +116,7 @@ QUuid ModbusTCPMaster::readCoil(uint slaveAddress, uint registerAddress)
                     qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
                 }
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus reply error:" << error;
                 emit requestError(requestId, reply->errorString());
@@ -145,7 +145,7 @@ QUuid ModbusTCPMaster::writeHoldingRegister(uint slaveAddress, uint registerAddr
 
     if (QModbusReply *reply = m_modbusTcpClient->sendWriteRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -159,7 +159,7 @@ QUuid ModbusTCPMaster::writeHoldingRegister(uint slaveAddress, uint registerAddr
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
                 emit requestError(requestId, reply->errorString());
@@ -188,7 +188,7 @@ QUuid ModbusTCPMaster::readDiscreteInput(uint slaveAddress, uint registerAddress
 
     if (QModbusReply *reply = m_modbusTcpClient->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
                 reply->deleteLater();
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -201,7 +201,7 @@ QUuid ModbusTCPMaster::readDiscreteInput(uint slaveAddress, uint registerAddress
                     qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
                 }
             });
-            connect(reply, &QModbusReply::errorOccurred, [requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
                 QModbusReply *reply = qobject_cast<QModbusReply *>(sender());
@@ -231,7 +231,7 @@ QUuid ModbusTCPMaster::readInputRegister(uint slaveAddress, uint registerAddress
 
     if (QModbusReply *reply = m_modbusTcpClient->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
                 reply->deleteLater();
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -244,7 +244,7 @@ QUuid ModbusTCPMaster::readInputRegister(uint slaveAddress, uint registerAddress
                     qCWarning(dcModbusCommander()) << "Read response error:" << reply->error();
                 }
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus reply error:" << error;
                 emit requestError(requestId, reply->errorString());
@@ -273,7 +273,7 @@ QUuid ModbusTCPMaster::readHoldingRegister(uint slaveAddress, uint registerAddre
 
     if (QModbusReply *reply = m_modbusTcpClient->sendReadRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -287,7 +287,7 @@ QUuid ModbusTCPMaster::readHoldingRegister(uint slaveAddress, uint registerAddre
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus replay error:" << error;
                 emit requestError(requestId, reply->errorString());
@@ -317,7 +317,7 @@ QUuid ModbusTCPMaster::writeCoil(uint slaveAddress, uint registerAddress, bool v
 
     if (QModbusReply *reply = m_modbusTcpClient->sendWriteRequest(request, slaveAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, [reply, requestId, this] {
+            connect(reply, &QModbusReply::finished, this, [reply, requestId, this] () {
 
                 if (reply->error() == QModbusDevice::NoError) {
                     requestExecuted(requestId, true);
@@ -331,7 +331,7 @@ QUuid ModbusTCPMaster::writeCoil(uint slaveAddress, uint registerAddress, bool v
                 }
                 reply->deleteLater();
             });
-            connect(reply, &QModbusReply::errorOccurred, [reply, requestId, this] (QModbusDevice::Error error){
+            connect(reply, &QModbusReply::errorOccurred, this, [reply, requestId, this] (QModbusDevice::Error error){
 
                 qCWarning(dcModbusCommander()) << "Modbus reply error:" << error;
                 emit requestError(requestId, reply->errorString());
