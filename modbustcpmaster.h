@@ -27,6 +27,7 @@
 #include <QHostAddress>
 #include <QtSerialBus>
 #include <QTimer>
+#include <QUuid>
 
 class ModbusTCPMaster : public QObject
 {
@@ -37,13 +38,13 @@ public:
 
     bool connectDevice();
 
-    bool readCoil(uint slaveAddress, uint registerAddress);
-    bool readDiscreteInput(uint slaveAddress, uint registerAddress);
-    bool readInputRegister(uint slaveAddress, uint registerAddress);
-    bool readHoldingRegister(uint slaveAddress, uint registerAddress);
+    QUuid readCoil(uint slaveAddress, uint registerAddress);
+    QUuid readDiscreteInput(uint slaveAddress, uint registerAddress);
+    QUuid readInputRegister(uint slaveAddress, uint registerAddress);
+    QUuid readHoldingRegister(uint slaveAddress, uint registerAddress);
 
-    bool writeCoil(uint slaveAddress, uint registerAddress, bool status);
-    bool writeHoldingRegister(uint slaveAddress, uint registerAddress, uint data);
+    QUuid writeCoil(uint slaveAddress, uint registerAddress, bool status);
+    QUuid writeHoldingRegister(uint slaveAddress, uint registerAddress, uint data);
 
     QString ipv4Address();
     uint port();
@@ -56,8 +57,6 @@ private:
     QModbusTcpClient *m_modbusTcpClient;
 
 private slots:
-    void onReplyFinished();
-    void onReplyErrorOccured(QModbusDevice::Error error);
     void onReconnectTimer();
 
     void onModbusErrorOccurred(QModbusDevice::Error error);
@@ -65,6 +64,10 @@ private slots:
 
 signals:
     void connectionStateChanged(bool status);
+
+    void requestExecuted(QUuid requestId, bool success);
+    void requestError(QUuid requestId, const QString &error);
+
     void receivedCoil(uint slaveAddress, uint modbusRegister, bool value);
     void receivedDiscreteInput(uint slaveAddress, uint modbusRegister, bool value);
     void receivedHoldingRegister(uint slaveAddress, uint modbusRegister, uint value);
