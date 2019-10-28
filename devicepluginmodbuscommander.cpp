@@ -33,7 +33,7 @@ DevicePluginModbusCommander::DevicePluginModbusCommander()
 void DevicePluginModbusCommander::init()
 {
     connect(this, &DevicePluginModbusCommander::configValueChanged, this, &DevicePluginModbusCommander::onPluginConfigurationChanged);
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.modbus* = false"));
+    //QLoggingCategory::setFilterRules(QStringLiteral("qt.modbus* = false"));
 
     m_slaveAddressParamTypeId.insert(coilDeviceClassId, coilDeviceSlaveAddressParamTypeId);
     m_slaveAddressParamTypeId.insert(inputRegisterDeviceClassId, inputRegisterDeviceSlaveAddressParamTypeId);
