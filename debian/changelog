@@ -1,5 +1,11 @@
-nymea-plugin-modbuscommander (0.1.0) UNRELEASED; urgency=medium
+nymea-plugin-modbuscommander (0.1.0) xenial; urgency=medium
 
+  [ Michael Zanetti ]
   * Initial release.
+  * New plugin: modbuscommander
+  * Devicemanager api update
 
- -- Michael Zanetti <michael.zanetti@nymea.io>  Mon, 16 Sep 2019 10:12:00 +0000
+  [ Bernhard Trinnes ]
+  * Fix modbus tcp
+
+ -- Jenkins <jenkins@nymea.io>  Mon, 28 Oct 2019 13:47:51 +0100
