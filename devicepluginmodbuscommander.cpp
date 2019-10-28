@@ -57,8 +57,10 @@ void DevicePluginModbusCommander::init()
 }
 
 
-Device::DeviceSetupStatus DevicePluginModbusCommander::setupDevice(Device *device)
+void DevicePluginModbusCommander::setupDevice(DeviceSetupInfo *info)
 {
+    Device *device = info->device();
+
     if (device->deviceClassId() == modbusTCPClientDeviceClassId) {
         QString ipAddress = device->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString();
         uint port = device->paramValue(modbusTCPClientDevicePortParamTypeId).toUInt();
@@ -66,7 +68,7 @@ Device::DeviceSetupStatus DevicePluginModbusCommander::setupDevice(Device *devic
         foreach (ModbusTCPMaster *modbusTCPMaster, m_modbusTCPMasters.values()) {
             if ((modbusTCPMaster->ipv4Address() == ipAddress) && (modbusTCPMaster->port() == port)){
                 m_modbusTCPMasters.insert(device, modbusTCPMaster);
-                return Device::DeviceSetupStatusSuccess;
+                return info->finish(Device::DeviceErrorNoError);
             }
         }
 
@@ -79,7 +81,7 @@ Device::DeviceSetupStatus DevicePluginModbusCommander::setupDevice(Device *devic
         connect(modbusTCPMaster, &ModbusTCPMaster::receivedInputRegister, this, &DevicePluginModbusCommander::onReceivedInputRegister);
 
         m_modbusTCPMasters.insert(device, modbusTCPMaster);
-        return Device::DeviceSetupStatusSuccess;
+        return info->finish(Device::DeviceErrorNoError);
     }
 
 
@@ -107,32 +109,31 @@ Device::DeviceSetupStatus DevicePluginModbusCommander::setupDevice(Device *devic
         connect(modbusRTUMaster, &ModbusRTUMaster::receivedInputRegister, this, &DevicePluginModbusCommander::onReceivedInputRegister);
 
         m_modbusRTUMasters.insert(device, modbusRTUMaster);
-        return Device::DeviceSetupStatusSuccess;
+        return info->finish(Device::DeviceErrorNoError);
     }
 
     if (device->deviceClassId() == coilDeviceClassId) {
-        return Device::DeviceSetupStatusSuccess;
+        return info->finish(Device::DeviceErrorNoError);
     }
 
     if (device->deviceClassId() == discreteInputDeviceClassId) {
-        return Device::DeviceSetupStatusSuccess;
+        return info->finish(Device::DeviceErrorNoError);
     }
 
     if (device->deviceClassId() == holdingRegisterDeviceClassId) {
-        return Device::DeviceSetupStatusSuccess;
+        return info->finish(Device::DeviceErrorNoError);
     }
 
     if (device->deviceClassId() == inputRegisterDeviceClassId) {
-        return Device::DeviceSetupStatusSuccess;
+        return info->finish(Device::DeviceErrorNoError);
     }
-    return Device::DeviceSetupStatusFailure;
+
+    qCWarning(dcModbusCommander()) << "Unhandled device class in setupDevice!";
 }
 
-Device::DeviceError DevicePluginModbusCommander::discoverDevices(const DeviceClassId &deviceClassId, const ParamList &params)
+void DevicePluginModbusCommander::discoverDevices(DeviceDiscoveryInfo *info)
 {
-    Q_UNUSED(params)
-    // Create the list of available serial Clients
-    QList<DeviceDescriptor> deviceDescriptors;
+    DeviceClassId deviceClassId = info->deviceClassId();
 
     if (deviceClassId == modbusRTUClientDeviceClassId) {
         Q_FOREACH(QSerialPortInfo port, QSerialPortInfo::availablePorts()) {
@@ -150,71 +151,73 @@ Device::DeviceError DevicePluginModbusCommander::discoverDevices(const DeviceCla
             }
             parameters.append(Param(modbusRTUClientDeviceSerialPortParamTypeId, serialPort));
             deviceDescriptor.setParams(parameters);
-            deviceDescriptors.append(deviceDescriptor);
+            info->addDeviceDescriptor(deviceDescriptor);
         }
-        emit devicesDiscovered(deviceClassId, deviceDescriptors);
-        return Device::DeviceErrorAsync;
+        info->finish(Device::DeviceErrorNoError);
+        return;
     }
 
     if (deviceClassId == discreteInputDeviceClassId) {
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
         }
-        emit devicesDiscovered(deviceClassId, deviceDescriptors);
-        return Device::DeviceErrorAsync;
+        info->finish(Device::DeviceErrorNoError);
+        return;
     }
 
     if (deviceClassId == coilDeviceClassId) {
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
+                info->addDeviceDescriptor(descriptor);
             }
         }
-        emit devicesDiscovered(deviceClassId, deviceDescriptors);
-        return Device::DeviceErrorAsync;
+        info->finish(Device::DeviceErrorNoError);
+        return;
     }
 
     if (deviceClassId == holdingRegisterDeviceClassId) {
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
         }
-        emit devicesDiscovered(deviceClassId, deviceDescriptors);
-        return Device::DeviceErrorAsync;
+        info->finish(Device::DeviceErrorNoError);
+        return;
     }
 
     if (deviceClassId == inputRegisterDeviceClassId) {
         Q_FOREACH(Device *ClientDevice, myDevices()){
             if (ClientDevice->deviceClassId() == modbusTCPClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusTCPClientDeviceIpv4addressParamTypeId).toString() + "Port: " + ClientDevice->paramValue(modbusTCPClientDevicePortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
             if (ClientDevice->deviceClassId() == modbusRTUClientDeviceClassId) {
                 DeviceDescriptor descriptor(deviceClassId, ClientDevice->name(), ClientDevice->paramValue(modbusRTUClientDeviceSerialPortParamTypeId).toString());
-                deviceDescriptors.append(descriptor);
+                info->addDeviceDescriptor(descriptor);
             }
         }
-        emit devicesDiscovered(deviceClassId, deviceDescriptors);
-        return Device::DeviceErrorAsync;
+        info->finish(Device::DeviceErrorNoError);
+        return;
     }
-    return Device::DeviceErrorDeviceClassNotFound;
+
+    qCWarning(dcModbusCommander()) << "Unhandled device class in discovery!";
 }
 
 void DevicePluginModbusCommander::postSetupDevice(Device *device)
@@ -235,27 +238,30 @@ void DevicePluginModbusCommander::postSetupDevice(Device *device)
 }
 
 
-Device::DeviceError DevicePluginModbusCommander::executeAction(Device *device, const Action &action)
+void DevicePluginModbusCommander::executeAction(DeviceActionInfo *info)
 {
+    Device *device = info->device();
+    Action action = info->action();
+
     if (device->deviceClassId() == coilDeviceClassId) {
 
         if (action.actionTypeId() == coilValueActionTypeId) {
             writeRegister(device, action);
 
-            return Device::DeviceErrorNoError;
+            return info->finish(Device::DeviceErrorNoError);
         }
-        return Device::DeviceErrorActionTypeNotFound;
+
     }
 
     if (device->deviceClassId() == holdingRegisterDeviceClassId) {
 
         if (action.actionTypeId() == holdingRegisterValueActionTypeId) {
             writeRegister(device, action);
-            return Device::DeviceErrorNoError;
+            return info->finish(Device::DeviceErrorNoError);
         }
-        return Device::DeviceErrorActionTypeNotFound;
     }
-    return Device::DeviceErrorDeviceClassNotFound;
+
+    qCWarning(dcModbusCommander()) << "Unhandled deviceclass/actiontype in executeAction!";
 }
 
 
