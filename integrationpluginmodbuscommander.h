@@ -20,11 +20,10 @@
  *                                                                         *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef DEVICEPLUGINMODBUSCOMMANDER_H
-#define DEVICEPLUGINMODBUSCOMMANDER_H
+#ifndef INTEGRATIONPLUGINMODBUSCOMMANDER_H
+#define INTEGRATIONPLUGINMODBUSCOMMANDER_H
 
-#include "devices/deviceplugin.h"
-#include "devices/devicemanager.h"
+#include "integrations/integrationplugin.h"
 #include "plugintimer.h"
 #include "modbustcpmaster.h"
 #include "modbusrtumaster.h"
@@ -32,41 +31,41 @@
 #include <QSerialPortInfo>
 #include <QUuid>
 
-class DevicePluginModbusCommander : public DevicePlugin
+class IntegrationPluginModbusCommander: public IntegrationPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "io.nymea.DevicePlugin" FILE "devicepluginmodbuscommander.json")
-    Q_INTERFACES(DevicePlugin)
+    Q_PLUGIN_METADATA(IID "io.nymea.IntegrationPlugin" FILE "integrationpluginmodbuscommander.json")
+    Q_INTERFACES(IntegrationPlugin)
 
 public:
-    explicit DevicePluginModbusCommander();
+    explicit IntegrationPluginModbusCommander();
 
     void init() override;
-    void discoverDevices(DeviceDiscoveryInfo *info) override;
-    void setupDevice(DeviceSetupInfo *info) override;
-    void postSetupDevice(Device *device) override;
-    void executeAction(DeviceActionInfo *info) override;
-    void deviceRemoved(Device *device) override;
+    void discoverThings(ThingDiscoveryInfo *info) override;
+    void setupThing(ThingSetupInfo *info) override;
+    void postSetupThing(Thing *info) override;
+    void executeAction(ThingActionInfo *info) override;
+    void thingRemoved(Thing *thing) override;
 
 private:
     PluginTimer *m_refreshTimer = nullptr;
 
-    QHash<Device *, ModbusRTUMaster *> m_modbusRTUMasters;
-    QHash<Device *, ModbusTCPMaster *> m_modbusTCPMasters;
-    QHash<QUuid, DeviceActionInfo *> m_asyncActions;
-    QHash<QUuid, Device *> m_readRequests;
+    QHash<Thing*, ModbusRTUMaster*> m_modbusRTUMasters;
+    QHash<Thing*, ModbusTCPMaster*> m_modbusTCPMasters;
+    QHash<QUuid, ThingActionInfo*> m_asyncActions;
+    QHash<QUuid, Thing*> m_readRequests;
 
-    QHash<ModbusRTUMaster *, DeviceSetupInfo *> m_asyncRTUSetup;
-    QHash<ModbusTCPMaster *, DeviceSetupInfo *> m_asyncTCPSetup;
+    QHash<ModbusRTUMaster*, ThingSetupInfo *> m_asyncRTUSetup;
+    QHash<ModbusTCPMaster*, ThingSetupInfo *> m_asyncTCPSetup;
 
-    void readRegister(Device *device);
-    void writeRegister(Device *device, DeviceActionInfo *info);
+    void readRegister(Thing *thing);
+    void writeRegister(Thing *thing, ThingActionInfo *info);
 
-    QHash<DeviceClassId, ParamTypeId> m_slaveAddressParamTypeId;
-    QHash<DeviceClassId, ParamTypeId> m_registerAddressParamTypeId;
-    QHash<DeviceClassId, StateTypeId> m_connectedStateTypeId;
-    QHash<DeviceClassId, StateTypeId> m_valueStateTypeId;
+    QHash<ThingClassId, ParamTypeId> m_slaveAddressParamTypeId;
+    QHash<ThingClassId, ParamTypeId> m_registerAddressParamTypeId;
+    QHash<ThingClassId, StateTypeId> m_connectedStateTypeId;
+    QHash<ThingClassId, StateTypeId> m_valueStateTypeId;
 
 private slots:
     void onRefreshTimer();
@@ -82,4 +81,4 @@ private slots:
     void onReceivedInputRegister(quint32 slaveAddress, quint32 modbusRegister, int value);
 };
 
-#endif // DEVICEPLUGINMODBUSCOMMANDER_H
+#endif // INTEGRATIONPLUGINMODBUSCOMMANDER_H
