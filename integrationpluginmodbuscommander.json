@@ -17,7 +17,7 @@
             "name": "nymea",
             "displayName": "nymea",
             "id": "2062d64d-3232-433c-88bc-0d33c0ba2ba6",
-            "deviceClasses": [
+            "thingClasses": [
                 {
                     "id": "35d3e7dc-1f33-4b8c-baa3-eb10b4f157a7",
                     "name": "modbusTCPClient",
